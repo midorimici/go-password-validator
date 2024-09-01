@@ -43,6 +43,54 @@ func Validate(password string, minEntropy float64) error {
 	return errors.New("insecure password, try using a longer password")
 }
 
+var (
+	// ErrInsufficientSpecialCharacters is returned when the password does not contain enough variety of special characters.
+	ErrInsufficientSpecialCharacters = errors.New("special characters are not used enough")
+	// ErrNoLowercaseLetters is returned when the password does not contain any lowercase letters.
+	ErrNoLowercaseLetters = errors.New("no lowercase letters are used")
+	// ErrNoUppercaseLetters is returned when the password does not contain any uppercase letters.
+	ErrNoUppercaseLetters = errors.New("no uppercase letters are used")
+	// ErrNoDigits is returned when the password does not contain any digits.
+	ErrNoDigits = errors.New("no digits are used")
+	// ErrShortPassword is returned when the password is too short.
+	ErrShortPassword = errors.New("password is too short")
+)
+
+// ValidateWithErrorSlice is similar to Validate but returns
+// a slice of errors that explain the issues with the password.
+// When the password is strong enough, it returns nil.
+// This function is useful for returning multiple errors separately.
+func ValidateWithErrorSlice(password string, minEntropy float64) []error {
+	entropy := getEntropy(password)
+	if entropy >= minEntropy {
+		return nil
+	}
+
+	hasReplace, hasSep, hasOtherSpecial, hasLower, hasUpper, hasDigits := getCharacterContainment(password)
+
+	errs := []error{}
+
+	if !hasOtherSpecial || !hasSep || !hasReplace {
+		errs = append(errs, ErrInsufficientSpecialCharacters)
+	}
+	if !hasLower {
+		errs = append(errs, ErrNoLowercaseLetters)
+	}
+	if !hasUpper {
+		errs = append(errs, ErrNoUppercaseLetters)
+	}
+	if !hasDigits {
+		errs = append(errs, ErrNoDigits)
+	}
+
+	if len(errs) == 0 {
+		return []error{ErrShortPassword}
+	}
+
+	errs = append(errs, ErrShortPassword)
+	return errs
+}
+
 func getCharacterContainment(password string) (hasReplace, hasSep, hasOtherSpecial, hasLower, hasUpper, hasDigits bool) {
 	for _, c := range password {
 		switch {
