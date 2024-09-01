@@ -16,29 +16,7 @@ func Validate(password string, minEntropy float64) error {
 		return nil
 	}
 
-	hasReplace := false
-	hasSep := false
-	hasOtherSpecial := false
-	hasLower := false
-	hasUpper := false
-	hasDigits := false
-
-	for _, c := range password {
-		switch {
-		case strings.ContainsRune(replaceChars, c):
-			hasReplace = true
-		case strings.ContainsRune(sepChars, c):
-			hasSep = true
-		case strings.ContainsRune(otherSpecialChars, c):
-			hasOtherSpecial = true
-		case strings.ContainsRune(lowerChars, c):
-			hasLower = true
-		case strings.ContainsRune(upperChars, c):
-			hasUpper = true
-		case strings.ContainsRune(digitsChars, c):
-			hasDigits = true
-		}
-	}
+	hasReplace, hasSep, hasOtherSpecial, hasLower, hasUpper, hasDigits := getCharacterContainment(password)
 
 	allMessages := []string{}
 
@@ -63,4 +41,25 @@ func Validate(password string, minEntropy float64) error {
 	}
 
 	return errors.New("insecure password, try using a longer password")
+}
+
+func getCharacterContainment(password string) (hasReplace, hasSep, hasOtherSpecial, hasLower, hasUpper, hasDigits bool) {
+	for _, c := range password {
+		switch {
+		case strings.ContainsRune(replaceChars, c):
+			hasReplace = true
+		case strings.ContainsRune(sepChars, c):
+			hasSep = true
+		case strings.ContainsRune(otherSpecialChars, c):
+			hasOtherSpecial = true
+		case strings.ContainsRune(lowerChars, c):
+			hasLower = true
+		case strings.ContainsRune(upperChars, c):
+			hasUpper = true
+		case strings.ContainsRune(digitsChars, c):
+			hasDigits = true
+		}
+	}
+
+	return
 }
