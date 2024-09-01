@@ -33,3 +33,43 @@ func TestValidate(t *testing.T) {
 		t.Errorf("Wanted %v, got %v", expectedError, err)
 	}
 }
+
+func TestValidateWithErrorSlice(t *testing.T) {
+	errs := ValidateWithErrorSlice("mypass", 50)
+	expectedErrors := []error{ErrInsufficientSpecialCharacters, ErrNoUppercaseLetters, ErrNoDigits, ErrShortPassword}
+	testErrorSlice(t, errs, expectedErrors)
+
+	errs = ValidateWithErrorSlice("MYPASS", 50)
+	expectedErrors = []error{ErrInsufficientSpecialCharacters, ErrNoLowercaseLetters, ErrNoDigits, ErrShortPassword}
+	testErrorSlice(t, errs, expectedErrors)
+
+	errs = ValidateWithErrorSlice("mypassword", 4)
+	if errs != nil {
+		t.Errorf("Errs should be nil")
+	}
+
+	errs = ValidateWithErrorSlice("aGoo0dMi#oFChaR2", 80)
+	if errs != nil {
+		t.Errorf("Errs should be nil")
+	}
+
+	expectedErrors = []error{ErrInsufficientSpecialCharacters, ErrNoLowercaseLetters, ErrNoUppercaseLetters, ErrShortPassword}
+	errs = ValidateWithErrorSlice("123", 60)
+	testErrorSlice(t, errs, expectedErrors)
+}
+
+func testErrorSlice(t *testing.T, errs []error, expectedErrors []error) {
+	t.Helper()
+
+	if len(errs) != len(expectedErrors) {
+		t.Errorf("Wanted %v, got %v", expectedErrors, errs)
+		return
+	}
+
+	for i, err := range errs {
+		expectedError := expectedErrors[i]
+		if err.Error() != expectedError.Error() {
+			t.Errorf("Errs[%d]: Wanted %v, got %v", i, expectedError, err)
+		}
+	}
+}
